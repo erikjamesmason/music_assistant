@@ -417,39 +417,56 @@ const MusicAssistant = () => {
 
   if (step === 'start') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white p-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <Music className="w-16 h-16 mx-auto mb-4 text-purple-400" />
-            <h1 className="text-4xl font-bold mb-2">Music Creation Assistant</h1>
-            <p className="text-gray-400">Each genre has its own unique sound palette</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white p-8">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16 relative">
+            <div className="absolute inset-0 flex items-center justify-center opacity-10">
+              <div className="w-96 h-96 bg-purple-500 rounded-full blur-3xl"></div>
+            </div>
+            <div className="relative">
+              <div className="inline-block p-4 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl backdrop-blur-sm mb-6 shadow-2xl border border-purple-500/20">
+                <Music className="w-16 h-16 text-purple-400" />
+              </div>
+              <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Music Creation Assistant
+              </h1>
+              <p className="text-gray-400 text-lg">Each genre has its own unique sound palette</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-2 gap-6 mb-12">
             {Object.keys(PROGRESSIONS).map(genre => (
               <button
                 key={genre}
                 onClick={() => setSelectedGenre(genre)}
-                className={`p-6 rounded-lg border-2 transition-all ${
+                className={`group relative p-8 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${
                   selectedGenre === genre
-                    ? 'border-purple-500 bg-purple-500/20'
-                    : 'border-gray-700 bg-gray-800/50 hover:border-purple-400'
+                    ? 'border-purple-500 bg-gradient-to-br from-purple-500/20 to-pink-500/10 shadow-2xl shadow-purple-500/20 scale-105'
+                    : 'border-gray-700/50 bg-gray-800/30 hover:border-purple-400/50 hover:bg-gray-800/50 hover:scale-102 backdrop-blur-sm'
                 }`}
               >
-                <div className="text-xl font-bold capitalize mb-1">{genre}</div>
-                <div className="text-xs text-gray-400">
-                  {genre === 'pop' ? 'Bright, clean synths' :
-                   genre === 'jazz' ? 'Warm, smooth tones' :
-                   genre === 'electronic' ? 'Rich saw wave pads' :
-                   'Mellow, laid-back keys'}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-600/0 to-pink-600/0 group-hover:from-purple-600/10 group-hover:to-pink-600/5 transition-all duration-300"></div>
+                <div className="relative">
+                  <div className="text-2xl font-bold capitalize mb-2 group-hover:text-purple-300 transition-colors">
+                    {genre}
+                  </div>
+                  <div className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
+                    {genre === 'pop' ? '✨ Bright, clean synths' :
+                     genre === 'jazz' ? '🎷 Warm, smooth tones' :
+                     genre === 'electronic' ? '⚡ Rich saw wave pads' :
+                     '🎵 Mellow, laid-back keys'}
+                  </div>
                 </div>
               </button>
             ))}
           </div>
 
           {selectedGenre && (
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold mb-4">Choose a Progression</h2>
+            <div className="space-y-4 animate-fadeIn">
+              <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
+                <div className="w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
+                Choose a Progression
+              </h2>
               {PROGRESSIONS[selectedGenre].map((prog, idx) => (
                 <div
                   key={idx}
@@ -457,13 +474,15 @@ const MusicAssistant = () => {
                     setSelectedProgression({ ...prog, genre: selectedGenre });
                     setStep('build');
                   }}
-                  className="p-6 bg-gray-800/50 rounded-lg border-2 border-gray-700 hover:border-purple-400 cursor-pointer transition-all"
+                  className="group p-6 bg-gradient-to-br from-gray-800/40 to-gray-900/40 rounded-xl border-2 border-gray-700/50 hover:border-purple-400/50 cursor-pointer transition-all duration-300 backdrop-blur-sm hover:shadow-xl hover:shadow-purple-500/10 hover:scale-102"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xl font-bold">{prog.name}</span>
-                    <span className="text-purple-400">{prog.chords.join(' - ')}</span>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xl font-bold group-hover:text-purple-300 transition-colors">{prog.name}</span>
+                    <span className="px-4 py-1.5 bg-purple-500/20 text-purple-300 rounded-full text-sm font-mono border border-purple-500/30">
+                      {prog.chords.join(' → ')}
+                    </span>
                   </div>
-                  <p className="text-gray-400 text-sm">{prog.theory}</p>
+                  <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">{prog.theory}</p>
                 </div>
               ))}
             </div>
@@ -474,16 +493,23 @@ const MusicAssistant = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 text-white p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950 to-slate-950 text-white p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-700/50">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Build Your Track</h1>
-            <p className="text-gray-400">
-              {selectedProgression.name} - {selectedProgression.chords.join(' → ')}
-            </p>
-            <p className="text-sm text-purple-400 mt-1">
-              Genre: {selectedProgression.genre} • Sound: {
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+              Build Your Track
+            </h1>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm font-semibold border border-purple-500/30">
+                {selectedProgression.name}
+              </span>
+              <span className="text-gray-400">•</span>
+              <span className="text-gray-300 font-mono">{selectedProgression.chords.join(' → ')}</span>
+            </div>
+            <p className="text-sm text-gray-400 flex items-center gap-2">
+              <span className="inline-block w-2 h-2 bg-purple-400 rounded-full animate-pulse"></span>
+              <span className="capitalize">{selectedProgression.genre}</span> • {
                 selectedProgression.genre === 'pop' ? 'Bright Synth' :
                 selectedProgression.genre === 'jazz' ? 'Warm Electric Piano' :
                 selectedProgression.genre === 'electronic' ? 'Saw Wave Pad' :
@@ -493,35 +519,45 @@ const MusicAssistant = () => {
           </div>
           <button
             onClick={() => setStep('start')}
-            className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+            className="px-6 py-3 bg-gray-800/50 border border-gray-700/50 rounded-xl hover:bg-gray-700/50 hover:border-gray-600 transition-all backdrop-blur-sm hover:scale-105"
           >
-            Change Progression
+            ← Change Progression
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="col-span-2 space-y-4">
-            <div className="bg-gray-800/50 rounded-lg p-6 border-2 border-gray-700">
-              <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Layers className="w-5 h-5" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 rounded-2xl p-8 border border-gray-700/50 backdrop-blur-sm shadow-2xl">
+              <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
+                <div className="p-2 bg-purple-500/20 rounded-lg">
+                  <Layers className="w-6 h-6 text-purple-400" />
+                </div>
                 Layers
               </h3>
               
               {layers.length === 0 && (
-                <p className="text-gray-400 text-center py-8">
-                  Add layers to start building your composition
-                </p>
+                <div className="text-center py-16 border-2 border-dashed border-gray-700/50 rounded-xl bg-gray-900/20">
+                  <Music className="w-16 h-16 mx-auto mb-4 text-gray-600" />
+                  <p className="text-gray-400 text-lg">Add layers to start building your composition</p>
+                </div>
               )}
 
               {layers.map(layer => (
-                <div key={layer.id} className="mb-4 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-semibold text-purple-400">{layer.name}</span>
+                <div key={layer.id} className="mb-5 p-5 bg-gray-900/60 rounded-xl border border-gray-700/50 backdrop-blur-sm hover:border-gray-600/50 transition-all group">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        layer.type === 'melody' ? 'bg-purple-400' :
+                        layer.type === 'bass' ? 'bg-blue-400' :
+                        'bg-red-400'
+                      }`}></div>
+                      <span className="font-semibold text-lg">{layer.name}</span>
+                    </div>
                     <button
                       onClick={() => deleteLayer(layer.id)}
-                      className="p-1 hover:bg-red-500/20 rounded transition-colors"
+                      className="p-2 hover:bg-red-500/20 rounded-lg transition-all group-hover:scale-110"
                     >
-                      <Trash2 className="w-4 h-4 text-red-400" />
+                      <Trash2 className="w-5 h-5 text-red-400" />
                     </button>
                   </div>
                   <input
@@ -533,85 +569,90 @@ const MusicAssistant = () => {
                         ? 'e.g., k - s - k - s - | k k s - ...' 
                         : `e.g., ${layer.type === 'bass' ? 'c2 c2 g2 g2' : 'c4 e4 g4 c5'} | ...`
                     }
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-600 rounded focus:border-purple-400 focus:outline-none font-mono text-sm"
+                    className="w-full px-4 py-3 bg-gray-800/80 border border-gray-600/50 rounded-lg focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/20 font-mono text-sm transition-all"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-2 ml-1">
                     {layer.type === 'drums' 
-                      ? 'Use: k (kick), s (snare), h (hihat), - (rest). Separate by spaces, bars by |'
-                      : 'Use Strudel syntax: notes separated by spaces, bars by |'
+                      ? '🥁 Use: k (kick), s (snare), h (hihat), - (rest). Separate by spaces, bars by |'
+                      : '🎹 Use Strudel syntax: notes separated by spaces, bars by |'
                     }
                   </p>
                 </div>
               ))}
 
-              <div className="flex gap-2 mt-4">
+              <div className="grid grid-cols-3 gap-3 mt-6">
                 <button
                   onClick={() => addLayer('melody')}
-                  className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="group px-4 py-4 bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 rounded-xl transition-all flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-purple-500/50 hover:scale-105"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                   Melody
                 </button>
                 <button
                   onClick={() => addLayer('bass')}
-                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="group px-4 py-4 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 rounded-xl transition-all flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-blue-500/50 hover:scale-105"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                   Bass
                 </button>
                 <button
                   onClick={() => addLayer('drums')}
-                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors flex items-center justify-center gap-2"
+                  className="group px-4 py-4 bg-gradient-to-br from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl transition-all flex items-center justify-center gap-2 font-semibold shadow-lg hover:shadow-red-500/50 hover:scale-105"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                   Drums
                 </button>
               </div>
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="bg-gray-800/50 rounded-lg p-6 border-2 border-gray-700">
-              <h3 className="text-xl font-bold mb-4">Controls</h3>
+          <div className="space-y-6">
+            <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 rounded-2xl p-6 border border-gray-700/50 backdrop-blur-sm shadow-2xl">
+              <h3 className="text-2xl font-bold mb-6">Controls</h3>
               
-              <div className="mb-4">
-                <label className="block text-sm text-gray-400 mb-2">BPM</label>
-                <input
-                  type="number"
-                  value={bpm}
-                  onChange={(e) => setBpm(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded focus:border-purple-400 focus:outline-none"
-                  min="60"
-                  max="200"
-                />
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-300 mb-3">Tempo (BPM)</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={bpm}
+                    onChange={(e) => setBpm(Number(e.target.value))}
+                    className="w-full px-4 py-3 bg-gray-900/80 border border-gray-600/50 rounded-lg focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/20 text-lg font-semibold text-center transition-all"
+                    min="60"
+                    max="200"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
+                    BPM
+                  </div>
+                </div>
               </div>
 
               <button
                 onClick={isPlaying ? stopPlayback : playComposition}
-                className={`w-full px-4 py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 ${
+                className={`w-full px-6 py-4 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg ${
                   isPlaying
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-green-600 hover:bg-green-700'
-                }`}
+                    ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 hover:shadow-red-500/50'
+                    : 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 hover:shadow-green-500/50'
+                } hover:scale-105`}
               >
                 {isPlaying ? (
                   <>
-                    <Square className="w-5 h-5" />
-                    Stop
+                    <Square className="w-6 h-6" />
+                    Stop Playback
                   </>
                 ) : (
                   <>
-                    <Play className="w-5 h-5" />
-                    Play
+                    <Play className="w-6 h-6" />
+                    Play Track
                   </>
                 )}
               </button>
 
               <button
                 onClick={exportMIDI}
-                className="w-full mt-2 px-4 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                className="w-full mt-3 px-6 py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-purple-500/50 hover:scale-105"
               >
-                <Download className="w-5 h-5" />
+                <Download className="w-6 h-6" />
                 Export MIDI Files
               </button>
               <p className="text-xs text-gray-400 text-center mt-2">
@@ -619,18 +660,35 @@ const MusicAssistant = () => {
               </p>
             </div>
 
-            <div className="bg-gray-800/50 rounded-lg p-6 border-2 border-gray-700">
-              <h3 className="text-lg font-bold mb-2">Quick Guide</h3>
-              <ul className="text-sm text-gray-400 space-y-2">
-                <li className="font-semibold text-purple-400">Notes:</li>
-                <li>• Use note names: c4, d4, e4, etc.</li>
-                <li>• Separate with spaces, bars with |</li>
-                <li>• Example: c4 e4 g4 | d4 f4 a4</li>
-                <li className="font-semibold text-red-400 mt-3">Drums:</li>
-                <li>• k = kick, s = snare, h = hihat</li>
-                <li>• Use - for rest/silence</li>
-                <li>• Example: k - s - | k k s h</li>
-              </ul>
+            <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 rounded-2xl p-6 border border-gray-700/50 backdrop-blur-sm shadow-xl">
+              <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <span className="text-xl">📖</span>
+                Quick Guide
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <div className="font-semibold text-purple-400 mb-2 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                    Notes
+                  </div>
+                  <ul className="text-sm text-gray-400 space-y-1 ml-4">
+                    <li>• Use note names: c4, d4, e4, etc.</li>
+                    <li>• Separate with spaces, bars with |</li>
+                    <li>• Example: <code className="text-purple-300 bg-purple-900/30 px-1 py-0.5 rounded">c4 e4 g4 | d4 f4 a4</code></li>
+                  </ul>
+                </div>
+                <div>
+                  <div className="font-semibold text-red-400 mb-2 flex items-center gap-2">
+                    <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                    Drums
+                  </div>
+                  <ul className="text-sm text-gray-400 space-y-1 ml-4">
+                    <li>• k = kick, s = snare, h = hihat</li>
+                    <li>• Use - for rest/silence</li>
+                    <li>• Example: <code className="text-red-300 bg-red-900/30 px-1 py-0.5 rounded">k - s - | k k s h</code></li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
