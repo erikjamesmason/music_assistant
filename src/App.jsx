@@ -2,6 +2,39 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as Tone from 'tone';
 import { Play, Square, Download, Plus, Trash2, Music, Layers } from 'lucide-react';
 
+// Add custom styles for animations
+const styles = `
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  .hover\\:scale-102:hover {
+    transform: scale(1.02);
+  }
+  
+  .hover\\:scale-105:hover {
+    transform: scale(1.05);
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.innerText = styles;
+  document.head.appendChild(styleSheet);
+}
+
 // Chord progression database organized by genre
 const PROGRESSIONS = {
   pop: [
@@ -329,9 +362,11 @@ const MusicAssistant = () => {
   };
 
   const noteToMidi = (note) => {
-    // Convert note name (e.g., 'C4', 'A#3') to MIDI number
+    // Convert note name (e.g., 'C4', 'c4', 'A#3') to MIDI number
     const noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    const match = note.match(/([A-G]#?)(\d+)/);
+    // Make case-insensitive by converting to uppercase first
+    const upperNote = note.toUpperCase();
+    const match = upperNote.match(/([A-G]#?)(\d+)/);
     if (!match) return 60; // Default to C4
     
     const [, noteName, octave] = match;
