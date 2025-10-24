@@ -1,6 +1,8 @@
 import React from 'react';
 import LayerEditor from './LayerEditor';
 import PlaybackControls from './PlaybackControls';
+import AIAssistant from './AIAssistant';
+import QuickGuide from './QuickGuide';
 
 const ComposerScreen = ({
   selectedProgression,
@@ -64,14 +66,27 @@ const ComposerScreen = ({
             />
           </div>
 
-          <PlaybackControls
-            bpm={bpm}
-            setBpm={setBpm}
-            isPlaying={isPlaying}
-            onPlay={onPlay}
-            onStop={onStop}
-            onExport={onExport}
-          />
+          <div className="space-y-6">
+            <PlaybackControls
+              bpm={bpm}
+              setBpm={setBpm}
+              isPlaying={isPlaying}
+              onPlay={onPlay}
+              onStop={onStop}
+              onExport={onExport}
+            />
+
+            <AIAssistant
+              selectedGenre={selectedProgression.genre}
+              selectedProgression={selectedProgression}
+              layers={layers}
+              bpm={bpm}
+              onAddLayer={onAddLayer}
+              onUpdateLayer={onUpdateLayer}
+            />
+
+            <QuickGuide />
+          </div>
         </div>
       </div>
     </div>
