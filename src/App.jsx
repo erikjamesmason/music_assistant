@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import * as Tone from 'tone';
-import { Play, Square, Download, Plus, Trash2, Music, Layers } from 'lucide-react';
+import { Play, Square, Download, Plus, Trash2, Music, Layers, Bot, Send, X, Sparkles, Loader2 } from 'lucide-react';
 
 // Add custom styles for animations
 const styles = `
@@ -82,7 +82,14 @@ const MusicAssistant = () => {
   const [layers, setLayers] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [bpm, setBpm] = useState(120);
+  const [showAI, setShowAI] = useState(false);
+  const [aiMessages, setAiMessages] = useState([
+    { role: 'assistant', content: 'Hey! I can help you create music. Try asking me to:\n\n• Generate a complete track\n• Create a specific layer (drums, bass, melody)\n• Make variations of existing patterns\n• Suggest ideas for your genre\n\nWhat would you like to create?' }
+  ]);
+  const [aiInput, setAiInput] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const synthsRef = useRef({});
+  const messagesEndRef = useRef(null);
 
   // Genre-specific synth configurations
   const SYNTH_CONFIGS = {
@@ -174,6 +181,145 @@ const MusicAssistant = () => {
       Object.values(synthsRef.current).forEach(synth => synth?.dispose?.());
     };
   }, [selectedGenre, step, selectedProgression]);
+
+  // AI Assistant Functions
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [aiMessages]);
+
+  const generateMusicWithAI = async (userPrompt) => {
+    setIsGenerating(true);
+    
+    // Build context for the AI
+    const currentContext = {
+      genre: selectedGenre || 'pop',
+      progression: selectedProgression ? selectedProgression.chords.join(' - ') : 'No progression selected',
+      progressionName: selectedProgression?.name || '',
+      bpm: bpm,
+      existingLayers: layers.map(l => `${l.type}: ${l.pattern || 'empty'}`).join('\n') || 'No layers yet'
+    };
+
+    // Create the system prompt
+    const systemPrompt = `You are an expert music composer assistant integrated into a web-based music creation tool. You help users create musical patterns in a specific notation format.
+
+NOTATION RULES:
+- DRUMS: k=kick, s=snare, h=hihat, o=open hihat, -=rest/silence
+- MELODY/BASS: Use note names with octaves (c4, d4, e4, f4, g4, a4, b4, c5, etc.)
+- SHARPS/FLATS: Use # for sharps (c#4, f#4)
+- TIMING: Separate beats with spaces. Each space represents one subdivision
+- BARS: Use | to separate bars
+- RESTS: Use - for silence/rest in any pattern
+
+CURRENT CONTEXT:
+- Genre: ${currentContext.genre}
+- Chord Progression: ${currentContext.progression} ${currentContext.progressionName ? `(${currentContext.progressionName})` : ''}
+- BPM: ${currentContext.bpm}
+- Existing Layers:
+${currentContext.existingLayers}
+
+IMPORTANT RULES:
+1. Generate patterns that match the chord progression length (usually 4 bars)
+2. Make patterns appropriate for the genre and BPM
+3. For ${currentContext.genre} genre, use appropriate rhythmic patterns and note choices
+4. Ensure all patterns are musically coherent together
+5. Keep patterns relatively simple and playable
+
+You MUST respond with ONLY a valid JSON object in this exact format, no other text:
+{
+  "layers": [
+    {
+      "type": "drums|bass|melody",
+      "pattern": "pattern string here",
+      "name": "Descriptive Name"
+    }
+  ],
+  "explanation": "Brief explanation of what was created and why"
+}
+
+DO NOT include markdown code blocks or any other formatting. Output ONLY the JSON object.`;
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [
+            { role: "user", content: systemPrompt },
+            { role: "user", content: userPrompt }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('API request failed');
+      }
+
+      const data = await response.json();
+      const responseText = data.content[0].text;
+      
+      // Parse the JSON response
+      let musicData;
+      try {
+        // Try to parse directly
+        musicData = JSON.parse(responseText);
+      } catch (e) {
+        // If it fails, try stripping markdown
+        const cleanedText = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        musicData = JSON.parse(cleanedText);
+      }
+
+      // Add generated layers to the composition
+      if (musicData.layers && Array.isArray(musicData.layers)) {
+        const newLayers = musicData.layers.map(layer => ({
+          id: Date.now() + Math.random(),
+          type: layer.type,
+          pattern: layer.pattern,
+          name: layer.name || `${layer.type.charAt(0).toUpperCase() + layer.type.slice(1)} ${layers.filter(l => l.type === layer.type).length + 1}`
+        }));
+
+        setLayers(prevLayers => [...prevLayers, ...newLayers]);
+
+        // Add success message
+        setAiMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `✨ Created ${musicData.layers.length} new layer${musicData.layers.length > 1 ? 's' : ''}!\n\n${musicData.explanation}\n\nThe patterns have been added to your composition. You can edit them directly or ask me to modify them.`
+        }]);
+      }
+    } catch (error) {
+      console.error('AI Generation Error:', error);
+      setAiMessages(prev => [...prev, {
+        role: 'assistant',
+        content: `Sorry, I encountered an error while generating music. Please try again with a different prompt. Error: ${error.message}`
+      }]);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleAISend = async () => {
+    if (!aiInput.trim() || isGenerating) return;
+
+    const userMessage = aiInput.trim();
+    setAiInput('');
+    setAiMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+
+    await generateMusicWithAI(userMessage);
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleAISend();
+    }
+  };
 
   const parseStrudelPattern = (pattern, type) => {
     // Simple Strudel-inspired parser
@@ -693,6 +839,20 @@ const MusicAssistant = () => {
               <p className="text-xs text-gray-400 text-center mt-2">
                 Exports separate files for each layer
               </p>
+
+              <div className="mt-4 pt-4 border-t border-gray-700/50">
+                <button
+                  onClick={() => setShowAI(!showAI)}
+                  className="w-full px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-3 shadow-lg hover:shadow-indigo-500/50 hover:scale-105"
+                >
+                  <Bot className="w-6 h-6" />
+                  AI Assistant
+                  <Sparkles className="w-5 h-5" />
+                </button>
+                <p className="text-xs text-gray-400 text-center mt-2">
+                  Generate patterns with AI
+                </p>
+              </div>
             </div>
 
             <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 rounded-2xl p-6 border border-gray-700/50 backdrop-blur-sm shadow-xl">
@@ -723,6 +883,130 @@ const MusicAssistant = () => {
                     <li>• Example: <code className="text-red-300 bg-red-900/30 px-1 py-0.5 rounded">k - s - | k k s h</code></li>
                   </ul>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Assistant Sidebar */}
+        <div className={`fixed right-0 top-0 h-full w-96 bg-gradient-to-b from-gray-900/95 to-gray-950/95 backdrop-blur-xl border-l border-gray-700/50 transform transition-transform duration-300 ease-in-out z-50 ${
+          showAI ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+          <div className="h-full flex flex-col">
+            {/* Header */}
+            <div className="p-4 border-b border-gray-700/50 bg-gradient-to-r from-indigo-600/20 to-purple-600/20">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Bot className="w-6 h-6 text-purple-400" />
+                  <h3 className="text-xl font-bold">AI Music Assistant</h3>
+                </div>
+                <button
+                  onClick={() => setShowAI(false)}
+                  className="p-2 hover:bg-gray-700/50 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <div className={`w-2 h-2 rounded-full ${selectedProgression ? 'bg-green-400' : 'bg-yellow-400'} animate-pulse`}></div>
+                <span className="capitalize">{selectedGenre || 'No genre'}</span>
+                <span>•</span>
+                <span>{bpm} BPM</span>
+                <span>•</span>
+                <span>{layers.length} layers</span>
+              </div>
+            </div>
+
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {aiMessages.map((message, index) => (
+                <div
+                  key={index}
+                  className={`${
+                    message.role === 'user'
+                      ? 'ml-auto max-w-[80%]'
+                      : 'mr-auto max-w-[80%]'
+                  }`}
+                >
+                  <div
+                    className={`p-3 rounded-xl ${
+                      message.role === 'user'
+                        ? 'bg-purple-600/20 border border-purple-500/30'
+                        : 'bg-gray-800/50 border border-gray-700/30'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  </div>
+                </div>
+              ))}
+              {isGenerating && (
+                <div className="mr-auto max-w-[80%]">
+                  <div className="p-3 rounded-xl bg-gray-800/50 border border-gray-700/30">
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                      <p className="text-sm text-gray-400">Composing music...</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input */}
+            <div className="p-4 border-t border-gray-700/50">
+              <div className="flex gap-2">
+                <textarea
+                  value={aiInput}
+                  onChange={(e) => setAiInput(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Ask me to create music..."
+                  className="flex-1 px-4 py-3 bg-gray-800/50 border border-gray-600/50 rounded-xl focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/20 resize-none text-sm"
+                  rows="2"
+                  disabled={isGenerating}
+                />
+                <button
+                  onClick={handleAISend}
+                  disabled={!aiInput.trim() || isGenerating}
+                  className={`px-4 py-3 rounded-xl transition-all ${
+                    !aiInput.trim() || isGenerating
+                      ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed'
+                      : 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg hover:shadow-purple-500/50'
+                  }`}
+                >
+                  {isGenerating ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              
+              {/* Quick Prompts */}
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  onClick={() => setAiInput('Create a complete drum beat')}
+                  className="text-xs px-3 py-1.5 bg-gray-700/30 hover:bg-gray-700/50 rounded-full transition-colors"
+                >
+                  🥁 Drum beat
+                </button>
+                <button
+                  onClick={() => setAiInput('Add a groovy bassline')}
+                  className="text-xs px-3 py-1.5 bg-gray-700/30 hover:bg-gray-700/50 rounded-full transition-colors"
+                >
+                  🎸 Bassline
+                </button>
+                <button
+                  onClick={() => setAiInput('Create a catchy melody')}
+                  className="text-xs px-3 py-1.5 bg-gray-700/30 hover:bg-gray-700/50 rounded-full transition-colors"
+                >
+                  🎹 Melody
+                </button>
+                <button
+                  onClick={() => setAiInput(`Create a full ${selectedGenre || 'pop'} track`)}
+                  className="text-xs px-3 py-1.5 bg-gray-700/30 hover:bg-gray-700/50 rounded-full transition-colors"
+                >
+                  ✨ Full track
+                </button>
               </div>
             </div>
           </div>
