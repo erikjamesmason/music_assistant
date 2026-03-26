@@ -131,17 +131,10 @@ IMPORTANT RULES:
   // Apply pattern to layer
   const applyPattern = (patternData) => {
     if (patternData.layerName === null) {
-      // Create new layer
-      onAddLayer(patternData.layerType);
-      // Wait for next render, then update the newest layer
-      setTimeout(() => {
-        // This is a workaround - ideally onAddLayer should return the new layer
-        // For now, we'll update via the parent component's state
-        const newLayerId = Date.now(); // This matches the ID generation in App
-        onUpdateLayer(newLayerId, patternData.pattern);
-      }, 100);
+      // Create new layer with pattern already set
+      onAddLayer(patternData.layerType, patternData.pattern);
     } else {
-      // Update existing layer
+      // Update existing layer by name
       const targetLayer = layers.find(l => l.name === patternData.layerName);
       if (targetLayer) {
         onUpdateLayer(targetLayer.id, patternData.pattern);
@@ -165,16 +158,14 @@ IMPORTANT RULES:
       // Build context-aware prompt
       const systemPrompt = buildSystemPrompt();
 
-      // Call Anthropic API
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      // Call backend proxy (keeps API key secure)
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': import.meta.env.VITE_ANTHROPIC_API_KEY,
-          'anthropic-version': '2023-06-01'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: 2000,
           messages: [
             {
