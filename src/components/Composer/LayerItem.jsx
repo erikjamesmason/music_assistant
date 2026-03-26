@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
+import { validatePattern } from '../../utils/patternParser';
 
 const LayerItem = ({ layer, onUpdate, onDelete }) => {
+  const [validationError, setValidationError] = useState('');
   const getLayerColor = (type) => {
     switch (type) {
       case 'melody': return 'bg-purple-400';
@@ -42,13 +44,23 @@ const LayerItem = ({ layer, onUpdate, onDelete }) => {
       <input
         type="text"
         value={layer.pattern}
-        onChange={(e) => onUpdate(layer.id, e.target.value)}
+        onChange={(e) => {
+          const { errors } = validatePattern(e.target.value, layer.type);
+          setValidationError(errors[0] || '');
+          onUpdate(layer.id, e.target.value);
+        }}
         placeholder={getPlaceholder(layer.type)}
-        className="w-full px-4 py-3 bg-gray-800/80 border border-gray-600/50 rounded-lg focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-400/20 font-mono text-sm transition-all"
+        className={`w-full px-4 py-3 bg-gray-800/80 border rounded-lg focus:outline-none focus:ring-2 font-mono text-sm transition-all ${
+          validationError
+            ? 'border-red-500/70 focus:border-red-400 focus:ring-red-400/20'
+            : 'border-gray-600/50 focus:border-purple-400 focus:ring-purple-400/20'
+        }`}
       />
-      <p className="text-xs text-gray-500 mt-2 ml-1">
-        {getHelpText(layer.type)}
-      </p>
+      {validationError ? (
+        <p className="text-xs text-red-400 mt-2 ml-1">{validationError}</p>
+      ) : (
+        <p className="text-xs text-gray-500 mt-2 ml-1">{getHelpText(layer.type)}</p>
+      )}
     </div>
   );
 };

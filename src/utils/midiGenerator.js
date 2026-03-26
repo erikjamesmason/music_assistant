@@ -1,6 +1,10 @@
 import { CHORD_NOTES } from '../data/progressions';
 import { parseStrudelPattern } from './patternParser';
 
+const TICKS_PER_BEAT = 480;
+const BEATS_PER_BAR = 4;
+const TICKS_PER_BAR = TICKS_PER_BEAT * BEATS_PER_BAR;
+
 /**
  * Convert note name (e.g., 'C4', 'c4', 'A#3') to MIDI number
  */
@@ -37,13 +41,10 @@ export const encodeVariableLength = (value) => {
  */
 export const generateChordTrack = (selectedProgression) => {
   const events = [];
-  const ticksPerBeat = 480;
-  const beatsPerBar = 4;
-  const ticksPerBar = ticksPerBeat * beatsPerBar;
 
   selectedProgression.chords.forEach((chord, barIndex) => {
-    const startTick = barIndex * ticksPerBar;
-    const duration = ticksPerBar;
+    const startTick = barIndex * TICKS_PER_BAR;
+    const duration = TICKS_PER_BAR;
     const notes = CHORD_NOTES[chord] || ['C4', 'E4', 'G4'];
 
     notes.forEach(note => {
@@ -61,17 +62,14 @@ export const generateChordTrack = (selectedProgression) => {
  */
 export const generateLayerTrack = (layer) => {
   const events = [];
-  const ticksPerBeat = 480;
-  const beatsPerBar = 4;
-  const ticksPerBar = ticksPerBeat * beatsPerBar;
   const bars = parseStrudelPattern(layer.pattern, layer.type);
 
   bars.forEach((items, barIndex) => {
     if (!items) return;
-    const ticksPerItem = ticksPerBar / items.length;
+    const ticksPerItem = TICKS_PER_BAR / items.length;
 
     items.forEach((item, itemIndex) => {
-      const startTick = barIndex * ticksPerBar + itemIndex * ticksPerItem;
+      const startTick = barIndex * TICKS_PER_BAR + itemIndex * ticksPerItem;
       const duration = Math.floor(ticksPerItem * 0.8); // 80% note length
 
       if (layer.type === 'drums') {

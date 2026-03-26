@@ -33,11 +33,11 @@ const MusicAssistant = () => {
     stopPlayback();
   };
 
-  const addLayer = (type) => {
+  const addLayer = (type, initialPattern = '') => {
     setLayers([...layers, {
       id: Date.now(),
       type,
-      pattern: '',
+      pattern: initialPattern,
       name: `${type.charAt(0).toUpperCase() + type.slice(1)} ${layers.filter(l => l.type === type).length + 1}`
     }]);
   };
